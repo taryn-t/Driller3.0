@@ -141,6 +141,9 @@ public class DrillingRecord<T> implements Comparable<T> {
 			}else if(date1.compareTo(compDate) < 0){
 				return -1;
 			}
+			else if(date1.compareTo(compDate) == 0){
+				return 0;
+			}
 		} catch (ParseException e) {
 			SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
 			timeFormat.setLenient(false);

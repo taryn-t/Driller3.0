@@ -8,52 +8,38 @@ import java.util.Scanner;
 public class Driller_2 {
     static int linesRead = 0;
     public static void readNewFile(String filePath, DrillingLinkedList<DrillingRecord> list, int start){
-        boolean invalid = false;
-        DrillingLinkedList<DrillingRecord> dataLinkedList = new DrillingLinkedList<>();
-        dataLinkedList.add(list.getLast().data, dataLinkedList, dataLinkedList.head.data.getDate());
-
         try{
             Scanner in = new Scanner(System.in);
             BufferedReader br = new BufferedReader(new FileReader(filePath));
             String line;
-            String headDate = "";
             line = br.readLine();
             line = br.readLine();
             int lineNum = 0;
-
+            String prevDate = list.getHead().data.getDate();
             while(line != null) {
                 if(lineNum == 0){
                     String[] lineString = line.split(",");
                     DrillingRecord lineRecord = new DrillingRecord(lineString);
                     String dateCheck = lineRecord.getDate();
-                    lineRecord =  dataLinkedList.getHead().data;
-                    headDate= lineRecord.getDate();
-                    if(!dateCheck.equals(headDate)){
+                    if(!dateCheck.equals(prevDate)){
                         System.out.println("Date mismatch file closed:");
-                        invalid =true;
-                        manipulate(dataLinkedList, dataLinkedList.length());
+                        manipulate(list, list.length()-1);
                     }
                 }
                 String[] lineString = line.split(",");
                 DrillingRecord lineRecord = new DrillingRecord(lineString);
-                dataLinkedList.add(lineRecord, dataLinkedList, headDate);
+                list.add(lineRecord, list, lineRecord.getDate());
                 line=br.readLine();
                 lineNum++;
                 linesRead++;
 
             }	br.close();
-            ResizableArray<DrillingRecord> array = new ResizableArray<>();
-//            array.makeResizableArray(dataLinkedList);
-//            array.checkDateTimeErrors();
-//            dataLinkedList = array.makeLinkedList();
-//            array.print(array);
-//            System.out.println();
-            manipulate(dataLinkedList, lineNum+start);
+            manipulate(list, list.length()-1);
         }
         catch(FileNotFoundException fnfe) {
             System.out.println("File not available");
 
-            manipulate(dataLinkedList, start);
+            manipulate(list, start);
         }
         catch (IOException ioe)
         {
@@ -143,13 +129,13 @@ public class Driller_2 {
         ResizableArray<DrillingRecord> array= new ResizableArray<>();
         array = list.makeArray();
         Scanner in = new Scanner(System.in);
-        System.out.println("Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge,(h)ash map (r)ecords, or (q)uit:");
+        System.out.println("Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (h)ash map (r)ecords, or (q)uit:");
         String userIn = in.nextLine();
         if(userIn.equals("o")){
             System.out.println("Enter the name of the file");
             String newFile = in.nextLine();
             if(!newFile.equals("")){
-                readNewFile("C:/Users/taryn/Driller0-4/src/"+ newFile +".csv", list, list.length() );
+                readNewFile(newFile, list, list.length() );
             }else if(newFile.equals("")){
                 System.out.println(list);
                 System.out.println("Data lines read: "+ linesRead +"; Valid drilling records: "+ array.getCount()+"; Drilling records in memory: " +
@@ -202,7 +188,7 @@ public class Driller_2 {
                         System.out.println("Enter timestamp as which to search:");
                         String element = in.nextLine();
                         if(!element.equals("")) {
-                            HashTable.Map<String, DrillingRecord> hashMap = new HashTable.Map<>();
+                            HashTable.Map<String, DrillingRecord> hashMap = new HashTable.Map<>(array.getCount());
                             DrillingLinkedList.Node<DrillingRecord> node = list.head;
                             int searchKey = hash(element);
                             while(node!= null){
@@ -240,17 +226,20 @@ public class Driller_2 {
         else if(userIn.equals("h")){
             System.out.println("Enter data file name:");
             String input = in.nextLine();
+            HashTable.Map<String, DrillingRecord> hashMap = new HashTable.Map<>(array.count);
+            DrillingLinkedList.Node<DrillingRecord> node = list.head;
+            while(node!= null){
+                hashMap.add(node.data.getTime(), node.data);
+                node = node.next;
+            }
             if(input.equals("")){
-                HashTable.Map<String, DrillingRecord> hashMap = new HashTable.Map<>();
-                DrillingLinkedList.Node<DrillingRecord> node = list.head;
-                while(node!= null){
-                    hashMap.add(node.data.getTime(), node.data);
-                    node = node.next;
-                }
                 System.out.println(hashMap.toString());
                 System.out.println("Base capacity: " + hashMap.getCapacity()+ "; Total capacity: " + hashMap.size()+ "; Load Factor: " + hashMap.getLoadFactor());
                 System.out.println("Data lines read: "+ linesRead +"; Valid drilling records: "+ hashMap.size()+"; Drilling records in memory: " +
                         hashMap.size());
+            }
+            else{
+                hashMap.writeToFile(input);
             }
             manipulate(list,index);
         }
@@ -263,55 +252,12 @@ public class Driller_2 {
         else{
             manipulate(list,index);
         }
-
     }
-
-
-
-
     public static void firstPrompt(){
         Scanner in = new Scanner(System.in);
-        System.out.println("Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, or (q)uit:");
+        System.out.println("Enter data file name:");
         String userIn = in.nextLine();
-
-        if(userIn.equals("o")){
-            System.out.println("Enter the name of the file");
-            String newFile = in.nextLine();
-            if(!newFile.equals("")){
-                DrillingLinkedList<DrillingRecord> list = readFile("C:/Users/taryn/Driller0-4/src/"+ newFile +".csv" );
-                manipulate(list, list.length());
-            }else if(newFile.equals("")){
-                System.out.println("No file available to output. Press 'o' to add file.");
-                firstPrompt();
-            }
-        }
-        else if(userIn.equals("q")){
-            System.out.println("Thanks for using Driller");
-            System.exit(0);
-        }
-        else if(userIn.equals("s")){
-            System.out.println("No file available to sort. Press 'o' to add file.");
-            firstPrompt();
-        }
-        else if(userIn.equals("f")){
-            System.out.println("No file available to find. Press 'o' to add file.");
-            firstPrompt();
-        }
-        else if(userIn.equals("m")){
-            System.out.println("No file available to merge. Press 'o' to add file.");
-            firstPrompt();
-        }
-        else if(userIn.equals("p")){
-            System.out.println("No file available to find. Press 'o' to add file.");
-            firstPrompt();
-        }
-        else if(userIn.equals("r")){
-            System.out.println("No file available to find. Press 'o' to add file.");
-            firstPrompt();
-        }
-        else{
-            firstPrompt();
-        }
+        readFile(userIn);
     }
     public static int hash(String key){
         int code = 0;

@@ -1,6 +1,4 @@
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 //class made with help from https://www.geeksforgeeks.org/implementing-our-own-hash-table-with-separate-chaining-in-java/
 public class HashTable {
@@ -25,10 +23,15 @@ public class HashTable {
         private int numBuckets; //capacity of array
         private int size; //size of array
         private int prime; //used to make primes
-        public Map()
+        public Map(int length)
         {
-            prime = 1;
-            bucketArray = new HashNode[(6*prime)+1];
+            prime = length ;
+            if(isPrime((6*prime)+1)){
+                bucketArray = new HashNode[(6*prime)+1];
+            }else{
+                bucketArray = new HashNode[(6*prime)-1];
+            }
+
             numBuckets = bucketArray.length;
             size = 0;
 
@@ -56,7 +59,9 @@ public class HashTable {
             index = index < 0 ? index * -1 : index;
             return index;
         }
-
+        public HashNode[] getBucketArray(){
+            return this.bucketArray;
+        }
         public V get(String key)
         {
             // Find head of chain for given key
@@ -109,8 +114,16 @@ public class HashTable {
             // double hash table size
             if (this.getLoadFactor() >= 0.8) {
                 prime++;
+                if(isPrime(prime)){
+                    prime++;
+                }
+
                 HashNode[] temp = bucketArray;
-                bucketArray = new HashNode[(6*prime) +1];
+                if(isPrime((6*prime)+1)){
+                    bucketArray = new HashNode[(6*prime)+1];
+                }else{
+                    bucketArray = new HashNode[(6*prime)-1];
+                }
                 numBuckets = bucketArray.length;
                 int i = 0;
                 for (HashNode<K, V> headNode : temp) {
@@ -122,9 +135,20 @@ public class HashTable {
                 }
             }
             if (this.getLoadFactor() <= 0.3) {
+                prime= prime / 2;
                 HashNode[] temp = bucketArray;
-                numBuckets = numBuckets/2;
-                bucketArray = new HashNode[numBuckets];
+                if(isPrime(prime) && prime != 1){
+                    prime--;
+                }else{
+                    prime++;
+                }
+
+                if(isPrime((6*prime)+1)){
+                    bucketArray = new HashNode[(6*prime)+1];
+                }else{
+                    bucketArray = new HashNode[(6*prime)-1];
+                }
+                numBuckets = bucketArray.length;
                 int i = 0;
                 for (HashNode<K, V> headNode : temp) {
                     while (headNode != null) {
@@ -136,7 +160,23 @@ public class HashTable {
             }
         }
 
+        //method to check if prime made with https://www.educba.com/prime-numbers-in-java/
+         public boolean isPrime(int num){
+             boolean prime = true;
+             for(int i = 2; i <= num/2; ++i)
+             {
+                 if(num % i == 0)
+                 {
+                     prime = false;
+                     break;
+                 }
+             }
+             return prime;
+
+     }
+
         //method to output as string
+         @Override
         public String toString(){
             //make StringBuilder object to hold string data
             StringBuilder hashStr = new StringBuilder();
@@ -171,13 +211,33 @@ public class HashTable {
             return hashStr.toString();
         }
 
-        public void writeToTable(String fileName, HashTable.Map map) {
+        //method that takes a name of a file to write the hashmap output to
+         //it will create a new file so there is no need for routing or manually creating a new file
+        public void writeToFile(String fileName) {
+            File file = new File(fileName);
+            BufferedWriter writer = null;
             try{
-                FileWriter writer = new FileWriter(fileName);
-                writer.write(map.toString());
-                writer.close();
+                //creates a new file for the results. It will appear in the directory when the program terminates
+                file.createNewFile();
+                //pass the file to the bufferedWriter object
+               writer = new BufferedWriter( new FileWriter(file));
+               System.out.println("Writing result to file");
+                //use the previous toString method to write to the new file
+                writer.write(this.toString());
+                writer.flush();
             }catch(IOException io){
-                System.out.println(map.toString());
+                //if it is unable to write to the file it will go to standard out
+                System.out.println("Error finding file");
+                System.out.println("Printing result on system.out");
+                System.out.println(this.toString());
+            }finally{
+                //finally close the writer object
+                try{
+                    writer.close();
+                    System.out.println("Writer closed");
+                }catch(NullPointerException | IOException e){
+                    System.out.println("No file to close");
+                }
             }
 
 
