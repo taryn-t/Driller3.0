@@ -8,18 +8,19 @@ import java.util.LinkedList;
 public class DrillingRecord<T> implements Comparable<T> {
 	//variables for DrillingRecord
 	LinkedList<String> recordData; //LinkedList to store strings from file
-	boolean floatingErrors = false; // boolean to flag errors with floating values
+	boolean floatingErrors; // boolean to flag errors with floating values
 	//default constructor
 	DrillingRecord(){
 		//initialize variables
 		recordData = new LinkedList<>();
-		boolean floatingErrors = false;
+		floatingErrors = false;
 
 	}
 
 	//reads and stores file data into LinkedLists
 	DrillingRecord(String[] fileLine){
 		 recordData = new LinkedList<>();
+		 floatingErrors = false;
 		for(int i = 0; i<= 17; i++) {
 			if(i <2) {
 				recordData.add(fileLine[i]);

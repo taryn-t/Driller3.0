@@ -137,6 +137,24 @@ import java.util.Set;
 		 return data[0];
 	 }
 
+	 public boolean contains(DrillingRecord comp){
+		 for(int i = 0; i<this.getCount(); i++){
+			 if(this.data[i] != null){
+				 DrillingRecord record= (DrillingRecord) this.data[i];
+				 if(record.getTime().compareTo(comp.getTime()) == 0){
+					 return true;
+				 }
+			 }
+		 }
+		 return false;
+	 }
+
+	 public boolean isEmpty(){
+		 if(this.data[0] == null){
+			 return true;
+		 }
+		 return false;
+	 }
 	//returns capacity
 	 public int getSize() {
 		 return capacity;

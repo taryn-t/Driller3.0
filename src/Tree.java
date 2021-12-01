@@ -1,3 +1,4 @@
+
 public class Tree {
     //made with help from https://www.javatpoint.com/avl-tree-program-in-java
     static class Node{
@@ -5,13 +6,14 @@ public class Tree {
         int height;
         Node leftChild;
         Node rightChild;
-
+        String key;
         //default constructor
         public Node(){
             data = null;
             height = 0;
             leftChild = null;
             rightChild = null;
+            key = "";
         }
 
         public Node(DrillingRecord record){
@@ -19,6 +21,7 @@ public class Tree {
             height = 0;
             leftChild = null;
             rightChild = null;
+            key = record.getTime();
         }
     }
 
@@ -127,7 +130,7 @@ public class Tree {
                     node = new Node(record);
                 }
                 //insert a node in case when the given element is lesser than the element of the root node
-                else if (record.compareTo(node.data.getTime()) < 0)
+                else if (record.getTime().compareTo(node.key) < 0)
                 {
                     //insert node as left child
                     node.leftChild = insertElement( record, node.leftChild, index );
@@ -144,7 +147,7 @@ public class Tree {
                     }
                 }
                 //insert node as right child
-                else if( record.compareTo(node.data.getTime()) > 0 )
+                else if( record.getTime().compareTo(node.key) > 0 )
                 {
                     node.rightChild = insertElement( record, node.rightChild, index );
                     if(node.rightChild != null && node.leftChild  != null){
@@ -240,10 +243,149 @@ public class Tree {
                 return length;
             }
         }
+
+        public void setRootNode(Node node) {
+            this.rootNode = node;
+        }
+
         public Node getRootNode(){
             return rootNode;
         }
 
+        public Tree.AVLTree purgeTrees(Tree.AVLTree base, Tree.AVLTree purge, int rootTreeSize){
+            // store the data in ResizableArray
+            ResizableArray<DrillingRecord> finalArray = new ResizableArray<>(); //array that will hold data minus the purge
+            ResizableArray<DrillingRecord> baseArray= base.storeInorder(base.getRootNode());
+            ResizableArray<DrillingRecord> purgeArray = purge.storeInorder(purge.getRootNode());
+
+            //loop through array and store any data that does not match between them
+            for(int i = 0; i< baseArray.getCount(); i++){
+                for(int k = 0; k< purgeArray.getCount(); k++){
+                    System.out.println(baseArray.get(i).getTime() + "  " + purgeArray.get(k).getTime() + " " + !baseArray.get(i).getTime().equals(purgeArray.get(k).getTime()));
+                        if(baseArray.get(i).getTime().equals(purgeArray.get(k).getTime()) == false){
+                            System.out.println("match");
+                            if(finalArray.isEmpty()){
+                                finalArray.push(baseArray.get(i));
+                            }
+                            ///todo
+                            else if(finalArray.contains(baseArray.get(i)) == false){
+                                finalArray.push(baseArray.get(i));
+                            }
+                            break;
+                        }
+                }
+            }
+            Tree.AVLTree newTree = new AVLTree();
+            finalArray.print(finalArray);
+            newTree.setRootNode(resizeArrayToTree(finalArray, 0, finalArray.getCount()-1));
+            return newTree;
+        }
+        //following methods made with the help of  https://www.geeksforgeeks.org/merge-two-balanced-binary-search-trees/
+
+        //utility method used in the method after to store data inorder
+        public ResizableArray<DrillingRecord> storeInorderUtil(Node node, ResizableArray<DrillingRecord> list)
+        {
+            if(node == null)
+                return list;
+
+            //recur on the left child
+            storeInorderUtil(node.leftChild, list);
+
+            // Adds data to the list
+            list.push(node.data);
+
+            //recur on the right child
+            storeInorderUtil(node.rightChild, list);
+
+            return list;
+        }
+        // Method that stores inorder traversal of a tree
+       public ResizableArray<DrillingRecord> storeInorder(Node node)
+        {
+            ResizableArray<DrillingRecord> list1 = new ResizableArray<>();
+            ResizableArray<DrillingRecord> list2 = storeInorderUtil(node,list1);
+            return list2;
+        }
+        // Method that merges two ResizableArrays into one.
+        ResizableArray<DrillingRecord> merge(ResizableArray<DrillingRecord>list1, ResizableArray<DrillingRecord>list2, int m, int n)
+        {
+            // list3 will contain the merge of list1 and list2
+            ResizableArray<DrillingRecord> list3 = new ResizableArray<>();
+            int i=0;
+            int j=0;
+
+            //Traversing through both ResizableArrays
+            while( i<m && j<n)
+            {
+                // records with earlier times go into list3
+                if(list1.get(i).getTime().compareTo(list2.get(j).getTime()) < 0)
+                {
+                    list3.push(list1.get(i));
+                    i++;
+                }
+                else
+                {
+                    list3.push(list2.get(j));
+                    j++;
+                }
+            }
+
+            // Adds the remaining elements of list1 into list3
+            while(i<m)
+            {
+                list3.push(list1.get(i));
+                i++;
+            }
+
+            // Adds the remaining elements of list2 into list3
+            while(j<n)
+            {
+                list3.push(list2.get(j));
+                j++;
+            }
+            return list3;
+        }
+
+        // Method that converts an ResizableArray to a BST
+        Node resizeArrayToTree(ResizableArray<DrillingRecord>list, int start, int end)
+        { Node node = new Node();
+            // Base case
+            if(start > end){
+                return null;
+            }
+
+            // Get the middle element and make it root
+            int mid = (start+end)/2;
+            if(list.get(mid) != null){
+                node = new Node(list.get(mid));
+                   /* Recursively construct the left subtree and make it
+        left child of root */
+                node.leftChild = resizeArrayToTree(list, start, mid-1);
+
+        /* Recursively construct the right subtree and make it
+        right child of root */
+                node.rightChild = resizeArrayToTree(list, mid+1, end);
+            }
+
+
+
+            return node;
+        }
+        // Method that merges two trees into a single one.
+        public Node mergeTrees(Node node1, Node node2)
+        {
+            //Stores Inorder of tree1 to list1
+            ResizableArray<DrillingRecord>list1 = storeInorder(node1);
+
+            //Stores Inorder of tree2 to list2
+            ResizableArray<DrillingRecord>list2 = storeInorder(node2);
+
+            // Merges both list1 and list2 into list3
+            ResizableArray<DrillingRecord>list3 = merge(list1, list2, list1.getCount(), list2.getCount());
+
+            //Eventually converts the merged list into resultant BST
+            return resizeArrayToTree(list3, 0, list3.getCount()-1);
+        }
     }
 
 
